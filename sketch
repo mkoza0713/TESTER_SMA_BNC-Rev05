@@ -106,8 +106,87 @@ void testBnc() {
   }
 }
 void testSma() {
-  byte testResult = true;
+  bool testResult = true;
   static byte testSteps = 0;
+
+  // rozpoczęcie testu
+  if (digitalRead(testSwitch) == LOW) {
+    switch (testSteps) {
+      case 0:
+        // TEST CIĄGŁOŚCI ŻYŁY
+        Serial.println("Rozpoczynam test zyly SMA");
+        signatureLed(3);  // niebieska
+        delay(500);
+
+        pinMode(smaPin1, INPUT_PULLUP);
+        pinMode(smaPin2, OUTPUT);
+        digitalWrite(smaPin2, LOW);
+        if (digitalRead(smaPin1) == HIGH) {  // wykryto brak połączenia
+          testResult = false;
+          testSteps = 3;  // wynik false
+          Serial.println("Test zyly SMA NOK");
+        } else {
+          testSteps = 1;
+          Serial.println("Test zyly SMA OK");
+        }
+        break;
+
+      case 1:
+        // TEST CIĄGŁOŚCI EKRANU
+        Serial.println("Rozpoczynam test ekranu SMA");
+        signatureLed(3);  // niebieska
+        delay(500);
+
+        pinMode(smaShield1, INPUT_PULLUP);
+        pinMode(smaShield2, OUTPUT);
+        digitalWrite(smaShield2, LOW);
+        if (digitalRead(smaShield1) == HIGH) {  // wykryto brak połączenia
+          testResult = false;
+          testSteps = 3;  // wynik false
+          Serial.println("Test ekranu SMA NOK");
+        } else {
+          testSteps = 2;
+          Serial.println("Test ekranu SMA OK");
+        }
+        break;
+
+      case 2:
+        // TEST ZWARCIA EKRANU Z ŻYŁĄ
+        pinMode(smaPin2, OUTPUT);
+        pinMode(smaShield2, OUTPUT);
+        digitalWrite(smaPin2, HIGH);
+        digitalWrite(smaShield2, LOW);
+
+        pinMode(smaPin1, INPUT_PULLUP);
+        pinMode(smaShield1, OUTPUT);
+        digitalWrite(smaShield1, LOW);
+        if (digitalRead(smaPin1) == LOW) {
+          Serial.println("ZWARCIE SMA");
+          testSteps = 3;
+          testResult = false;
+          signatureLed(4);  // np. czerwona migająca
+        } else {
+          testSteps = 3;
+          Serial.println("Test zwarcia SMA OK");
+        }
+        break;
+
+      case 3:
+        break;
+    }
+  }
+  // wynik testu
+  if (testResult && testSteps == 3) {
+    Serial.println("Test SMA OK");
+    Serial.println("");
+    testSteps = 0;
+    signatureLed(2);  // zielona
+  } else if (!testResult && testSteps == 3) {
+    Serial.println("Test SMA NIEOK");
+    Serial.println("");
+    testSteps = 0;
+    signatureLed(1);  // czerwona
+  }
 }
 void signatureLed(byte status) {
   switch (status) {
