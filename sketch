@@ -1,12 +1,12 @@
 #define ledRed 14
 #define ledGreen 15
 #define ledBlue 16
-#define testSwitch 17
 
 #define smaPin1 8
 #define smaPin2 12
 #define smaShield1 9
 #define smaShield2 13
+#define testSwitchSma 18
 // #define activateSma1 9
 // #define activateSma2 10
 
@@ -14,10 +14,12 @@
 #define bncPin2 5
 #define bncShield1 6
 #define bncShield2 4
+#define testSwitchBnc 17
 
 void setup() {
   Serial.begin(9600);
-  pinMode(testSwitch, INPUT_PULLUP);
+  pinMode(testSwitchBnc, INPUT_PULLUP);
+  pinMode(testSwitchSma, INPUT_PULLUP);
   startLedSignature();
 }
 void loop() {
@@ -29,7 +31,7 @@ void testBnc() {
   static byte testSteps = 0;
 
   //rozpoczecie testu
-  if (digitalRead(testSwitch) == LOW) {
+  if (digitalRead(testSwitchBnc) == LOW) {
     switch (testSteps) {
       case 0:
         //TEST CIAGLOSCI ZYLY
@@ -110,7 +112,7 @@ void testSma() {
   static byte testSteps = 0;
 
   // rozpoczęcie testu
-  if (digitalRead(testSwitch) == LOW) {
+  if (digitalRead(testSwitchSma) == LOW) {
     switch (testSteps) {
       case 0:
         // TEST CIĄGŁOŚCI ŻYŁY
