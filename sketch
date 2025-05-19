@@ -1,0 +1,162 @@
+#define ledRed 14
+#define ledGreen 15
+#define ledBlue 16
+#define testSwitch 17
+
+#define smaPin1 8
+#define smaPin2 12
+#define smaShield1 9
+#define smaShield2 13
+// #define activateSma1 9
+// #define activateSma2 10
+
+#define bncPin1 7
+#define bncPin2 5
+#define bncShield1 6
+#define bncShield2 4
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(testSwitch, INPUT_PULLUP);
+  startLedSignature();
+}
+void loop() {
+  testSma();
+  testBnc();
+}
+void testBnc() {
+  byte testResult = true;
+  static byte testSteps = 0;
+
+  //rozpoczecie testu
+  if (digitalRead(testSwitch) == LOW) {
+    switch (testSteps) {
+      case 0:
+        //TEST CIAGLOSCI ZYLY
+        Serial.println("Rozpoczynam test zyly BNC");
+        signatureLed(3);  //niebieska
+        delay(500);
+
+        pinMode(bncPin1, INPUT_PULLUP);
+        pinMode(bncPin2, OUTPUT);
+        digitalWrite(bncPin2, LOW);
+        if (digitalRead(bncPin1) == HIGH) {  //wykryto brak polaczenia
+          testResult = false;
+          testSteps = 3;  //wynik false
+          Serial.println("Test zyly BNC NOK");
+        } else {
+          testSteps = 1;
+          Serial.println("Test zyly BNC OK");
+        }
+        break;
+      case 1:
+        //TEST CIAGLOSCI EKRANU
+        Serial.println("Rozpoczynam test ekranu BNC");
+        signatureLed(3);  //niebieska
+        delay(500);
+
+        pinMode(bncShield1, INPUT_PULLUP);
+        pinMode(bncShield2, OUTPUT);
+        digitalWrite(bncShield2, LOW);
+        if (digitalRead(bncShield1) == HIGH) {  //wykryto brak polaczenia
+          testResult = false;
+          testSteps = 3;  //wynik false
+          Serial.println("Test ekranu BNC NOK");
+        } else {
+          testSteps = 2;
+          Serial.println("Test ekranu BNC OK");
+        }
+        break;
+      case 2:
+        //TEST ZWARCIA EKRANU Z ZYLA
+        pinMode(bncPin2, OUTPUT);
+        pinMode(bncShield2, OUTPUT);
+        digitalWrite(bncPin2, HIGH);
+        digitalWrite(bncShield2, LOW);
+
+        pinMode(bncPin1, INPUT_PULLUP);
+        pinMode(bncShield1, OUTPUT);
+        digitalWrite(bncShield1, LOW);
+        if (digitalRead(bncPin1) == LOW) {
+          Serial.println("ZWARCIE BNC");
+          testSteps = 3;
+          testResult = false;
+          signatureLed(4);
+        } else {
+          testSteps = 3;
+          Serial.println("Test zwarcia BNC OK");
+        }
+        break;
+      case 3:
+        break;
+    }
+  }
+
+  //wynik testu
+  if (testResult && testSteps == 3) {
+    Serial.println("Test BNC OK");
+    Serial.println("");
+    testSteps = 0;
+    signatureLed(2);
+  } else if (!testResult && testSteps == 3) {
+    Serial.println("Test BNC NIEOK");
+    Serial.println("");
+    testSteps = 0;
+    signatureLed(1);
+  }
+}
+void testSma() {
+  byte testResult = true;
+  static byte testSteps = 0;
+}
+void signatureLed(byte status) {
+  switch (status) {
+    case 1:  //blad
+      digitalWrite(ledBlue, LOW);
+      digitalWrite(ledRed, HIGH);
+      delay(2000);
+      digitalWrite(ledRed, LOW);
+      break;
+    case 2:  //ok
+      digitalWrite(ledBlue, LOW);
+      digitalWrite(ledGreen, HIGH);
+      delay(2000);
+      digitalWrite(ledGreen, LOW);
+      break;
+    case 3:  //oczekiwanie na test
+      digitalWrite(ledBlue, HIGH);
+      break;
+    case 4:  //zwarcie
+      for (byte i = 0; i < 4; i++) {
+        digitalWrite(ledRed, HIGH);
+        delay(100);
+        digitalWrite(ledRed, LOW);
+        delay(100);
+      }
+      break;
+  }
+}
+void startLedSignature() {
+  pinMode(ledRed, OUTPUT);
+  pinMode(ledGreen, OUTPUT);
+  pinMode(ledBlue, OUTPUT);
+
+  for (byte i = 0; i < 2; i++) {
+    digitalWrite(ledRed, HIGH);
+    delay(200);
+    digitalWrite(ledRed, LOW);
+    delay(200);
+  }
+  for (byte i = 0; i < 2; i++) {
+    digitalWrite(ledBlue, HIGH);
+    delay(200);
+    digitalWrite(ledBlue, LOW);
+    delay(200);
+  }
+  for (byte i = 0; i < 2; i++) {
+    digitalWrite(ledGreen, HIGH);
+    delay(200);
+    digitalWrite(ledGreen, LOW);
+    delay(200);
+  }
+}
